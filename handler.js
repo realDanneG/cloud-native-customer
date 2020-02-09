@@ -28,9 +28,10 @@ module.exports.createCustomer = ( event, context, callback ) =>
 {
   const reqBody = JSON.parse(event.body);
   
-  if(!reqBody.title || reqBody.title.trim() ==="" || !reqBody.body || reqBody.body.trim() ==="")
+  //Check that atleast first and lastname exists
+  if(!reqBody.firstname || reqBody.firstname.trim() ==="" || !reqBody.lastname || reqBody.lastname.trim() ==="")
   {
-    return callback(null,response(400,{error:"Request must have title and body and cannot be empty"}))
+    return callback(null,response(400,{error:"Request must have firstname and lastname and cannot be empty"}))
   }
 
   const customer = 
@@ -46,7 +47,7 @@ module.exports.createCustomer = ( event, context, callback ) =>
     adress:reqBody.adress,
     zipcode:reqBody.zipcode,
     country:reqBody.country,
-    returningcutomer:false,
+    returningcustomer:false,
     admin:reqBody.admin,
   };
   return db.put
