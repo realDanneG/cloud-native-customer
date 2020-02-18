@@ -3,7 +3,7 @@ const AWS = require("aws-sdk")
 const db = new AWS.DynamoDB.DocumentClient({apiVersion:"2012-08-10"})
 const uuid = require("uuid/v4")
 
-const custTable = process.env.CUSTOMERS_TABLE
+const customerTable = process.env.CUSTOMERS_TABLE
 
 //Create response
 function response(statuscode,message)
