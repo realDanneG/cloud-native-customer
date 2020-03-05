@@ -2,6 +2,7 @@
 const AWS = require("aws-sdk")
 const db = new AWS.DynamoDB.DocumentClient({apiVersion:"2012-08-10"})
 const uuid = require("uuid/v4")
+const joi = require("joi")
 
 const customerTable = process.env.CUSTOMERS_TABLE
 
@@ -33,7 +34,21 @@ module.exports.createCustomer = ( event, context, callback ) =>
   {
     return callback(null,response(400,{error:"Request must have firstname and lastname and cannot be empty"}))
   }
-
+  const schema = joi.object().keys({
+    id:joi.string(),
+    createdAt:joi.date().iso(),
+    firstname:joi.string().trim().required(),
+    lastname: joi.string().trim().required(),
+    password:joi.string().trim().required(),
+    gender:joi.string().trim(),
+    email:joi.string().trim().email().required(),
+    phone:joi.string().trim(),
+    adress:joi.string(),
+    zipcode:joi.string().trim(),
+    country:joi.string().trim(),
+    returningcustomer:joi.bool(),
+    admin:joi.bool(),
+  });
   const customer = 
   {
     id:uuid(),
@@ -50,14 +65,24 @@ module.exports.createCustomer = ( event, context, callback ) =>
     returningcustomer:false,
     admin:reqBody.admin,
   };
-  return db.put
-  ({
-    TableName: customerTable,
-    Item: customer
-  }).promise().then(()=>{
-    callback(null, response(201,customer))
-  })
-  .catch(err => response(null,response(err.statusCode,err)));
+  joi.validate(customer,schema,(err,result)=>
+  {
+    if(err)
+    {
+      return callback(null,response(400,{error:"Sent data does not match the requirements"}))
+    }
+    else
+    {
+      return db.put
+      ({
+        TableName: customerTable,
+        Item: customer
+      }).promise().then(()=>{
+        callback(null, response(201,customer))
+      })
+      .catch(err => response(null,response(err.statusCode,err)));
+    }
+  });
 }
 
 //Get all customers
