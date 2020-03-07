@@ -11,6 +11,7 @@ function response(statuscode,message)
 {
   return {
     statusCode:statuscode,
+    headers:{'Access-Control-Allow-Origin':'*'},
     body:JSON.stringify(message)
   }
 }

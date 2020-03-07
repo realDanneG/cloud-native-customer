@@ -28,30 +28,35 @@ functions:
     - http:
         path: /customer
         method: post
+        cors: true
   getAllCustomers:
     handler: handler.getAllCustomers
     events:
     - http:
         path: /customers
         method: get
+        cors: true
   getCustomer:
     handler: handler.getCustomer
     events:
     - http:
         path: /customer/{id}
         method: get
+        cors: true
   updateCustomer:
     handler: handler.updateCustomer
     events:
     - http:
         path: /customer/{id}
         method: put
+        cors: true
   deleteCustomer:
     handler: handler.deleteCustomer
     events:
     - http:
         path: /customer/{id}
         method: delete
+        cors: true
 
 resources:
   Resources:
