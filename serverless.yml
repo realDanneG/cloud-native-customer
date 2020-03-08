@@ -57,6 +57,13 @@ functions:
         path: /customer/{id}
         method: delete
         cors: true
+  checkLogin:
+    handler: handler.checkLogin
+    events:
+    - http:
+        path: /login
+        method: post
+        cors: true
 
 resources:
   Resources:

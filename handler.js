@@ -28,19 +28,29 @@ function sortByDate(a,b)
 //Check if key + value pair exists : return true or false
 function checkKeyValuePair(obj,key,value)
 {
-  return obj.hasOwnProperty(key)&&obj[key]==value;
+  if(obj[key]==value){
+    return true;
+  } else {return false};
 }
 
 //Check email
 function checkEmail(mail)
 {
   var foundMail=false;
-  var items = db.scan({
+  db.scan({
     TableName: customerTable
   }).promise().then(res =>{
-    foundMail=res.Items.includes(element=>element.email==mail)
+    var items=res.Items;
+    for(var i = 0 ; i<items.length ; i++)
+    {
+      var obj=items[i];
+      if(checkKeyValuePair(obj,'email',mail)==true)
+      {
+        foundMail=true;
+      }
+      return foundMail;
+    }
   });
-  return foundMail;
 }
 
 //Create customer
@@ -53,59 +63,62 @@ module.exports.createCustomer = ( event, context, callback ) =>
   {
     return callback(null,response(400,{error:"Request must have firstname and lastname and cannot be empty"}))
   }
-  if(checkEmail(reqBody.email))
+  if(checkEmail(reqBody.email)==true)
   {
     return callback(null,response(400,{error:"Email already in use"}))
   }
-  const schema = joi.object().keys({
-    id:joi.string(),
-    createdAt:joi.date().iso(),
-    firstname:joi.string().trim().required(),
-    lastname: joi.string().trim().required(),
-    password:joi.string().trim().required(),
-    gender:joi.string().trim(),
-    email:joi.string().trim().email().required(),
-    phone:joi.string().trim(),
-    adress:joi.string(),
-    zipcode:joi.string().trim(),
-    country:joi.string().trim(),
-    returningcustomer:joi.bool(),
-    admin:joi.bool(),
-  });
-  const customer = 
+  else
   {
-    id:uuid(),
-    createdAt:new Date().toISOString(),
-    firstname:reqBody.firstname,
-    lastname:reqBody.lastname,
-    password:reqBody.password,
-    gender:reqBody.gender,
-    email:reqBody.email,
-    phone:reqBody.phone,
-    adress:reqBody.adress,
-    zipcode:reqBody.zipcode,
-    country:reqBody.country,
-    returningcustomer:false,
-    admin:reqBody.admin,
-  };
-  joi.validate(customer,schema,(err,result)=>
-  {
-    if(err)
+    const schema = joi.object().keys({
+      id:joi.string(),
+      createdAt:joi.date().iso(),
+      firstname:joi.string().trim().required(),
+      lastname: joi.string().trim().required(),
+      password:joi.string().trim().required(),
+      gender:joi.string().trim(),
+      email:joi.string().trim().email().required(),
+      phone:joi.string().trim(),
+      adress:joi.string(),
+      zipcode:joi.string().trim(),
+      country:joi.string().trim(),
+      returningcustomer:joi.bool(),
+      admin:joi.bool(),
+    });
+    const customer = 
     {
-      return callback(null,response(400,{error:"Sent data does not match the requirements"}))
-    }
-    else
+      id:uuid(),
+      createdAt:new Date().toISOString(),
+      firstname:reqBody.firstname,
+      lastname:reqBody.lastname,
+      password:reqBody.password,
+      gender:reqBody.gender,
+      email:reqBody.email,
+      phone:reqBody.phone,
+      adress:reqBody.adress,
+      zipcode:reqBody.zipcode,
+      country:reqBody.country,
+      returningcustomer:false,
+      admin:reqBody.admin,
+    };
+    joi.validate(customer,schema,(err,result)=>
     {
-      return db.put
-      ({
-        TableName: customerTable,
-        Item: customer
-      }).promise().then(()=>{
-        callback(null, response(201,customer))
-      })
-      .catch(err => response(null,response(err.statusCode,err)));
-    }
-  });
+      if(err)
+      {
+        return callback(null,response(400,{error:"Sent data does not match the requirements"}))
+      }
+      else
+      {
+        return db.put
+        ({
+          TableName: customerTable,
+          Item: customer
+        }).promise().then(()=>{
+          callback(null, response(201,customer))
+        })
+        .catch(err => response(null,response(err.statusCode,err)));
+      }
+    });
+  }  
 }
 
 //Get all customers
@@ -174,3 +187,32 @@ module.exports.deleteCustomer = (event, context, callback)=>
   .catch(err => callback(null, response(err.statusCode,err)));
 }
 
+//Check logindetails
+module.exports.checkLogin = (event, context, callback)=>
+{
+  const reqBody = JSON.parse(event.body);
+  var foundUser=false;
+  var email = reqBody.email;
+  var password = reqBody.password;
+  db.scan({
+    TableName: customerTable
+  }).promise().then(res =>{
+    var items=res.Items;
+    for(var i = 0 ; i<items.length ; i++)
+    {
+      var obj=items[i];
+      if(checkKeyValuePair(obj,'email',email)==true&&checkKeyValuePair(obj,'password',password)==true)
+      {
+        foundUser=true;
+      }
+    }
+    if(foundUser==true)
+    {
+      callback(null,response(200,foundUser));
+    }
+    else
+    {
+      callback(null,response(404,foundUser));
+    }
+  }).catch(err => callback(null,response(err.statusCode.err)));
+}
