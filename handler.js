@@ -48,8 +48,8 @@ function checkEmail(mail)
       {
         foundMail=true;
       }
-      return foundMail;
     }
+    return foundMail;
   });
 }
 
@@ -63,62 +63,76 @@ module.exports.createCustomer = ( event, context, callback ) =>
   {
     return callback(null,response(400,{error:"Request must have firstname and lastname and cannot be empty"}))
   }
-  if(checkEmail(reqBody.email)==true)
-  {
-    return callback(null,response(400,{error:"Email already in use"}))
-  }
-  else
-  {
-    const schema = joi.object().keys({
-      id:joi.string(),
-      createdAt:joi.date().iso(),
-      firstname:joi.string().trim().required(),
-      lastname: joi.string().trim().required(),
-      password:joi.string().trim().required(),
-      gender:joi.string().trim(),
-      email:joi.string().trim().email().required(),
-      phone:joi.string().trim(),
-      adress:joi.string(),
-      zipcode:joi.string().trim(),
-      country:joi.string().trim(),
-      returningcustomer:joi.bool(),
-      admin:joi.bool(),
-    });
-    const customer = 
+  db.scan({
+    TableName: customerTable
+  }).promise().then(res =>{
+    var items=res.Items;
+    var foundUser=false;
+    for(var i = 0 ; i<items.length ; i++)
     {
-      id:uuid(),
-      createdAt:new Date().toISOString(),
-      firstname:reqBody.firstname,
-      lastname:reqBody.lastname,
-      password:reqBody.password,
-      gender:reqBody.gender,
-      email:reqBody.email,
-      phone:reqBody.phone,
-      adress:reqBody.adress,
-      zipcode:reqBody.zipcode,
-      country:reqBody.country,
-      returningcustomer:false,
-      admin:reqBody.admin,
-    };
-    joi.validate(customer,schema,(err,result)=>
+      var obj=items[i];
+      if(checkKeyValuePair(obj,'email',reqBody.email)==true)
+      {
+        foundUser=true;
+      }
+    }
+    if(foundUser==true)
     {
-      if(err)
+      callback(null,response(400,{message:"Email already registred"}));
+    }
+    else
+    {
+      const schema = joi.object().keys({
+        id:joi.string(),
+        createdAt:joi.date().iso(),
+        firstname:joi.string().trim().required(),
+        lastname: joi.string().trim().required(),
+        password:joi.string().trim().required(),
+        gender:joi.string().trim(),
+        email:joi.string().trim().email().required(),
+        phone:joi.string().trim(),
+        adress:joi.string(),
+        zipcode:joi.string().trim(),
+        country:joi.string().trim(),
+        returningcustomer:joi.bool(),
+        admin:joi.bool(),
+      });
+      const customer = 
       {
-        return callback(null,response(400,{error:"Sent data does not match the requirements"}))
-      }
-      else
+        id:uuid(),
+        createdAt:new Date().toISOString(),
+        firstname:reqBody.firstname,
+        lastname:reqBody.lastname,
+        password:reqBody.password,
+        gender:reqBody.gender,
+        email:reqBody.email,
+        phone:reqBody.phone,
+        adress:reqBody.adress,
+        zipcode:reqBody.zipcode,
+        country:reqBody.country,
+        returningcustomer:false,
+        admin:reqBody.admin,
+      };
+      joi.validate(customer,schema,(err,result)=>
       {
-        return db.put
-        ({
-          TableName: customerTable,
-          Item: customer
-        }).promise().then(()=>{
-          callback(null, response(201,customer))
-        })
-        .catch(err => response(null,response(err.statusCode,err)));
-      }
-    });
-  }  
+        if(err)
+        {
+          return callback(null,response(400,{error:"Sent data does not match the requirements"}))
+        }
+        else
+        {
+          return db.put
+          ({
+            TableName: customerTable,
+            Item: customer
+          }).promise().then(()=>{
+            callback(null, response(201,customer))
+          })
+          .catch(err => response(null,response(err.statusCode,err)));
+        }
+      });
+    }
+  });
 }
 
 //Get all customers
