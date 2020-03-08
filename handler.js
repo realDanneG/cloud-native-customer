@@ -25,6 +25,24 @@ function sortByDate(a,b)
   } else return 1;
 }
 
+//Check if key + value pair exists : return true or false
+function checkKeyValuePair(obj,key,value)
+{
+  return obj.hasOwnProperty(key)&&obj[key]==value;
+}
+
+//Check email
+function checkEmail(mail)
+{
+  var foundMail=false;
+  var items = db.scan({
+    TableName: customerTable
+  }).promise().then(res =>{
+    foundMail=res.Items.includes(element=>element.email==mail)
+  });
+  return foundMail;
+}
+
 //Create customer
 module.exports.createCustomer = ( event, context, callback ) =>
 {
@@ -34,6 +52,10 @@ module.exports.createCustomer = ( event, context, callback ) =>
   if(!reqBody.firstname || reqBody.firstname.trim() ==="" || !reqBody.lastname || reqBody.lastname.trim() ==="")
   {
     return callback(null,response(400,{error:"Request must have firstname and lastname and cannot be empty"}))
+  }
+  if(checkEmail(reqBody.email))
+  {
+    return callback(null,response(400,{error:"Email already in use"}))
   }
   const schema = joi.object().keys({
     id:joi.string(),
@@ -151,3 +173,4 @@ module.exports.deleteCustomer = (event, context, callback)=>
   return db.delete(params).promise().then(()=>callback(null,response(200,{message:"Customer deleted successfully"})))
   .catch(err => callback(null, response(err.statusCode,err)));
 }
+
