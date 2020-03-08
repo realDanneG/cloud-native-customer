@@ -12,14 +12,14 @@ servers:
 - url: http://7hxuxvgjn2.execute-api.eu-central-1.amazonaws.com/dev
 tags:
 - name: customer
-  description: Operations about customers
+  description: Customer operations
 paths:
   /customer:
     post:
       tags:
       - customer
       summary: Create customer
-      description: This can only be done by poeple who have API-key.
+      description: This can only be done by people who have API-key.
       operationId: createCustomer
       requestBody:
         description: Created user object
@@ -141,6 +141,35 @@ paths:
         404:
           description: User not found
           content: {}
+  /login:
+    post:
+      tags:
+      - customer
+      summary: Customer login
+      operationId: checkLogin
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+        required: true
+      responses:
+        default:
+          description: successful operation
+          content: {}
+        404:
+          description: Email/password combination not found
+          content: {}
+      x-codegen-request-body-name: body
+      
+      
+     
+
 components:
   schemas:
     Customer:
