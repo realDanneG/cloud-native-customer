@@ -61,7 +61,7 @@ module.exports.createCustomer = ( event, context, callback ) =>
   //Check that atleast first and lastname exists
   if(!reqBody.firstname || reqBody.firstname.trim() ==="" || !reqBody.lastname || reqBody.lastname.trim() ==="")
   {
-    return callback(null,response(400,{error:"Request must have firstname and lastname and cannot be empty"}))
+    return callback(null,response(400,{error:"Request must have a firstname and a lastname, and cannot be empty."}))
   }
   db.scan({
     TableName: customerTable
@@ -78,7 +78,7 @@ module.exports.createCustomer = ( event, context, callback ) =>
     }
     if(foundUser==true)
     {
-      callback(null,response(400,{message:"Email already registred"}));
+      callback(null,response(400,{message:"Email already registered."}));
     }
     else
     {
@@ -158,7 +158,7 @@ module.exports.getCustomer = (event, context, callback)=>
   }
   return db.get(params).promise().then(res=>{
     if(res.Item) callback(null,response(200,res.Item))
-    else callback(null, response(404,{error:"Customer not found"}))
+    else callback(null, response(404,{error:"Customer not found."}))
   }).catch(err => callback(null,response(err.statusCode,err)));
 }
 
@@ -197,7 +197,7 @@ module.exports.deleteCustomer = (event, context, callback)=>
     },
     TableName: customerTable
   };
-  return db.delete(params).promise().then(()=>callback(null,response(200,{message:"Customer deleted successfully"})))
+  return db.delete(params).promise().then(()=>callback(null,response(200,{message:"Customer deleted successfully."})))
   .catch(err => callback(null, response(err.statusCode,err)));
 }
 
