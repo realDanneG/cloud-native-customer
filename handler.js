@@ -33,26 +33,6 @@ function checkKeyValuePair(obj,key,value)
   } else {return false};
 }
 
-//Check email
-function checkEmail(mail)
-{
-  var foundMail=false;
-  db.scan({
-    TableName: customerTable
-  }).promise().then(res =>{
-    var items=res.Items;
-    for(var i = 0 ; i<items.length ; i++)
-    {
-      var obj=items[i];
-      if(checkKeyValuePair(obj,'email',mail)==true)
-      {
-        foundMail=true;
-      }
-    }
-    return foundMail;
-  });
-}
-
 //Create customer
 module.exports.createCustomer = ( event, context, callback ) =>
 {
