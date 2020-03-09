@@ -306,6 +306,27 @@ pm.expect(jsonData.adress).to.not.be.null;
 
 // POST - Add customer
 
+/*
+
+Mock model used in Postman (Body)
+
+{
+    "createdAt": "2020-03-08T16:59:00.927Z",
+    "email": "jocaa@fake.com",
+    "country": "Finland",
+    "gender": "Male",
+    "returningcustomer": false,
+    "lastname": "Andersson",
+    "zipcode": "00100",
+    "password": "Ja123",
+    "admin": false,
+    "adress": "Skogsvägen 1",
+    "firstname": "Jocke",
+    "phone": "2903819031"
+}
+
+*/
+
 // Expect response to have a status code of 400, (Email in use)
 pm.test("Throw email already in use error", function () {
     pm.expect(pm.response.code).to.be.oneOf([400]) ;
