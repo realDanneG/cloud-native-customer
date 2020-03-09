@@ -33,6 +33,26 @@ function checkKeyValuePair(obj,key,value)
   } else {return false};
 }
 
+//Check email
+function checkEmail(mail)
+{
+  var foundMail=false;
+  db.scan({
+    TableName: customerTable
+  }).promise().then(res =>{
+    var items=res.Items;
+    for(var i = 0 ; i<items.length ; i++)
+    {
+      var obj=items[i];
+      if(checkKeyValuePair(obj,'email',mail)==true)
+      {
+        foundMail=true;
+      }
+    }
+    return foundMail;
+  });
+}
+
 //Create customer
 module.exports.createCustomer = ( event, context, callback ) =>
 {
@@ -41,7 +61,7 @@ module.exports.createCustomer = ( event, context, callback ) =>
   //Check that atleast first and lastname exists
   if(!reqBody.firstname || reqBody.firstname.trim() ==="" || !reqBody.lastname || reqBody.lastname.trim() ==="")
   {
-    return callback(null,response(400,{error:"Request must have a firstname and a lastname, and cannot be empty."}))
+    return callback(null,response(400,{error:"Request must have firstname and lastname and cannot be empty"}))
   }
   db.scan({
     TableName: customerTable
@@ -58,7 +78,7 @@ module.exports.createCustomer = ( event, context, callback ) =>
     }
     if(foundUser==true)
     {
-      callback(null,response(400,{message:"Email already registered."}));
+      callback(null,response(400,{message:"Email already registred"}));
     }
     else
     {
@@ -138,7 +158,7 @@ module.exports.getCustomer = (event, context, callback)=>
   }
   return db.get(params).promise().then(res=>{
     if(res.Item) callback(null,response(200,res.Item))
-    else callback(null, response(404,{error:"Customer not found."}))
+    else callback(null, response(404,{error:"Customer not found"}))
   }).catch(err => callback(null,response(err.statusCode,err)));
 }
 
@@ -147,8 +167,19 @@ module.exports.updateCustomer = (event, context, callback)=>
 {
   const id = event.pathParameters.id;
   const body = JSON.parse(event.body);
-  const paramName = body.paramName;
-  const paramValue = body.paramValue;
+
+  var createdAt = body.createdAt;
+  var firstname = body.firstname;
+  var lastname = body.lastname;
+  var password = body.password;
+  var gender = body.gender;
+  var email = body.email;
+  var phone = body.phone;
+  var adress = body.adress;
+  var zipcode = body.zipcode;
+  var country = body.country;
+  var returningcustomer = body.returningcustomer;
+  var admin = body.admin;
 
   const params = {
     Key:{
@@ -156,14 +187,25 @@ module.exports.updateCustomer = (event, context, callback)=>
     },
     TableName: customerTable,
     ConditionExpression: "attribute_exists(id)",
-    UpdateExpression: "set "+paramName+" = :v",
+    UpdateExpression: "SET createdAt=:createdAt, firstname=:firstname, lastname=:lastname, password=:password, gender=:gender, email=:email, phone=:phone, adress=:adress, zipcode=:zipcode, country=:country, returningcustomer=:returningcustomer, admin=:admin",
     ExpressionAttributeValues: {
-      ":v":paramValue
+      ":createdAt":createdAt,
+      ":firstname":firstname,
+      ":lastname":lastname,
+      ":password":password,
+      ":gender":gender,
+      ":email":email,
+      ":phone":phone,
+      ":adress":adress,
+      ":zipcode":zipcode,
+      ":country":country,
+      ":returningcustomer":returningcustomer,
+      ":admin":admin,
     },
     ReturnValue: "ALL_NEW"
   };
   return db.update(params).promise().then(res =>{
-    callback(null,response(200,res.Attributes));
+    callback(null,response(200,{message:"Successfully updated customer"}));
   }).catch(err => callback(null,response(err.statusCode,err)));
 }
 
@@ -177,7 +219,7 @@ module.exports.deleteCustomer = (event, context, callback)=>
     },
     TableName: customerTable
   };
-  return db.delete(params).promise().then(()=>callback(null,response(200,{message:"Customer deleted successfully."})))
+  return db.delete(params).promise().then(()=>callback(null,response(200,{message:"Customer deleted successfully"})))
   .catch(err => callback(null, response(err.statusCode,err)));
 }
 
